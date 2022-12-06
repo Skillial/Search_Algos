@@ -5,52 +5,52 @@ public class BinaryTree {
         return rootNode;
     }
 
-    public void setRootNode(binaryTreeNode rootNode) {
-        this.rootNode = rootNode;
-    }
-
-    public void insertNode(String value) { // while loop copy pasted from a yt video, must change
+    public void insertNode(String value) {
         binaryTreeNode newNode = new binaryTreeNode(value);
+        binaryTreeNode findingNode = searchNode(newNode.value, rootNode);
+        if(findingNode!=null) {
+            findingNode.cnt++;
+            return;
+        }
         if (rootNode == null) {
             rootNode = newNode;
             rootNode.setDepth(0);
             return;
         }
         binaryTreeNode referenceNode = rootNode;
-        binaryTreeNode tempParent;
-        while (true) {
-            tempParent = referenceNode;
-            if (value.compareTo(referenceNode.value)==0)
-            {
-                referenceNode.cnt++;
-                break;
-            }
-            else if (value.compareTo(referenceNode.value) < 0) {//this one
-                referenceNode = referenceNode.leftChild;
-                if (referenceNode == null) {
-                    tempParent.leftChild = newNode;
-                    break;
-                }
-            } else {
-                referenceNode = referenceNode.rightChild;
-                if (referenceNode == null) {
-                    tempParent.rightChild = newNode;
-                    break;
-                }
-            }
-        }
-        newNode.parent = tempParent;
+        insertNode(newNode, referenceNode);
         newNode.depth = newNode.parent.depth + 1; //++ doesnt work for some reason
 
         System.out.printf("Node %s added! Depth of %d. Child of %s.\n", value, newNode.depth, newNode.parent.value);
     }
 
+    public void insertNode(binaryTreeNode newNode, binaryTreeNode referenceNode) {
+        if (newNode.value.compareTo(referenceNode.value) < 0) {
+            if (referenceNode.leftChild == null) {
+                referenceNode.leftChild = newNode;
+                newNode.parent = referenceNode;
+                return;
+            }
+            insertNode(newNode, referenceNode.leftChild);
+            return;
+        }
+        if (referenceNode.rightChild == null) {
+            referenceNode.rightChild = newNode;
+            newNode.parent = referenceNode;
+            return;
+        }
+        insertNode(newNode, referenceNode.rightChild);
+    }
+
     public binaryTreeNode searchNode(String value, binaryTreeNode startNode) {
         if (rootNode == null || startNode == null) return null;
         binaryTreeNode referenceNode = startNode;
-        if (startNode == null) referenceNode = rootNode;
-        if (referenceNode.value == value) return referenceNode;
-        if (referenceNode.value.compareTo(value) < 0) return searchNode(value, referenceNode.getRightChild());//this one
+        if (startNode == null)
+            referenceNode = rootNode;
+        if (referenceNode.value.compareTo(value) == 0)
+            return referenceNode;
+        if (referenceNode.value.compareTo(value) < 0)
+            return searchNode(value, referenceNode.getRightChild());//this one
         return searchNode(value, referenceNode.getLeftChild());
     }
 
@@ -77,7 +77,7 @@ public class BinaryTree {
 
     public void printTree(binaryTreeNode currentNode, StringBuilder line, String tabs, String arrow) {
         if (currentNode == null) return;
-        line.append("\n").append(tabs).append(arrow).append(currentNode.value).append(" "+currentNode.cnt);
+        line.append("\n").append(tabs).append(arrow).append(currentNode.value).append(" ").append(currentNode.cnt);
 
         StringBuilder tabBuilder = new StringBuilder(tabs);
         if (currentNode.parent.rightChild != null && currentNode.parent.rightChild != currentNode)
