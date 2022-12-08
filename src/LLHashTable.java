@@ -63,7 +63,7 @@ public class LLHashTable {
         if (option == 1)
             key = javaHash(word) % hashTable.length;
         else {
-            verylong = CityHash.cityHash64(word.getBytes(), 0, word.length());
+            verylong = CityHash.cityHash64(word.getBytes(), 0   , word.length());
             key = (int) (verylong % hashTable.length);
             if (key < 0)
                 key *= -1;
