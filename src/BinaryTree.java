@@ -1,166 +1,74 @@
-public class BinaryTree {
-    binaryTreeNode rootNode;
+import java.util.*;
+import java.util.Random;
 
-    public binaryTreeNode getRootNode() {
-        return rootNode;
+class App {
+    //method for the randomizer
+    public static String randomizer(int stringLength) {
+        StringBuilder word = new StringBuilder();
+        char[] bank = {'a', 'c', 'g', 't'};
+        for (int i = 0; i < stringLength; i++) {
+            Random num = new Random();
+            word.append(bank[num.nextInt(4)]);
+        }
+        return word.toString();
     }
 
-    public void insertNode(String value) {
-        binaryTreeNode newNode = new binaryTreeNode(value);
-        binaryTreeNode findingNode = searchNode(newNode.value, rootNode);
-        if(findingNode!=null) {
-            findingNode.cnt++;
-            return;
-        }
-        if (rootNode == null) {
-            rootNode = newNode;
-            rootNode.setDepth(0);
-            return;
-        }
-        binaryTreeNode referenceNode = rootNode;
-        insertNode(newNode, referenceNode);
-        newNode.depth = newNode.parent.depth + 1; //++ doesnt work for some reason
-
-        System.out.printf("Node %s added! Depth of %d. Child of %s.\n", value, newNode.depth, newNode.parent.value);
-    }
-
-    public void insertNode(binaryTreeNode newNode, binaryTreeNode referenceNode) {
-        if (newNode.value.compareTo(referenceNode.value) < 0) {
-            if (referenceNode.leftChild == null) {
-                referenceNode.leftChild = newNode;
-                newNode.parent = referenceNode;
-                return;
+    public static void main(String[] args) {
+        //variable declarations
+        String inputText, sub;
+        int length, k, option;
+        int mode; //1 - hash table/ 2 - binary tree
+        Scanner sc = new Scanner(System.in);
+        long startTime, endTime, totalTime; //for timers
+        //getting inputs (rather than just setting them directly). Felt like doing it this way compared to MC01
+        System.out.print("Input string length: ");
+        length = sc.nextInt();
+        System.out.print("Input k: ");
+        k = sc.nextInt();
+        System.out.print("Do you want to use (1)binary search/ (2)hash table: ");
+        mode = sc.nextInt();
+        if (mode == 1) {
+            startTime = System.nanoTime(); //for run-time analysis
+            inputText = randomizer(length);       //randomizes the string given input length
+            System.out.println(inputText);
+            BinaryTree tree = new BinaryTree(new binaryTreeNode(inputText.substring(0, k)));
+            //puts the substrings into the hashtable
+            for (int i = 1; i <= length - k; i++) {
+                sub = inputText.substring(i, i + k); //cuts the string from i to i+k
+                tree.insertNode(sub);
             }
-            insertNode(newNode, referenceNode.leftChild);
-            return;
-        }
-        if (referenceNode.rightChild == null) {
-            referenceNode.rightChild = newNode;
-            newNode.parent = referenceNode;
-            return;
-        }
-        insertNode(newNode, referenceNode.rightChild);
-    }
-
-    public binaryTreeNode searchNode(String value, binaryTreeNode startNode) {
-        if (rootNode == null || startNode == null) return null;
-        binaryTreeNode referenceNode = startNode;
-        if (startNode == null)
-            referenceNode = rootNode;
-        if (referenceNode.value.compareTo(value) == 0)
-            return referenceNode;
-        if (referenceNode.value.compareTo(value) < 0)
-            return searchNode(value, referenceNode.getRightChild());//this one
-        return searchNode(value, referenceNode.getLeftChild());
-    }
-
-    public void printTree() {   //modified from https://www.baeldung.com/java-print-binary-tree-diagram
-        if (rootNode == null) {
-            System.out.println("Tree has no nodes");
-            return;
+            tree.printTree();
+            endTime = System.nanoTime();
+            totalTime = endTime - startTime;
+            System.out.println("Running time: " + totalTime + " nanoseconds");
+            float milliTime = totalTime / 1_000_000.0f; //convert to milliseconds
+            System.out.println("Running time: " + milliTime + " milliseconds");
         }
 
-        System.out.println("Top is left child, bottom is right child.");
-        System.out.printf("%s", rootNode.value);
-        StringBuilder line = new StringBuilder();
-        String leftChildArrow;
-        String rightChildArrow = "╚═══";
-        if (rootNode.rightChild != null && rootNode.leftChild != null)
-            leftChildArrow = "╠═══";
-        else
-            leftChildArrow = "╚═══";
 
-        printTree(rootNode.leftChild, line, "", leftChildArrow);
-        printTree(rootNode.rightChild, line, "", rightChildArrow);
-        System.out.printf("%s\n", line);
+        if (mode == 2) {
+            System.out.print("Input hash function (1 or 2 only): ");
+            option = sc.nextInt();
+
+            startTime = System.nanoTime(); //for run-time analysis
+            inputText = randomizer(length);       //randomizes the string given input length
+            LLHashTable theHT = new LLHashTable(length);
+            //puts the substrings into the hashtable
+            for (int i = 0; i <= length - k; i++) {
+                sub = inputText.substring(i, i + k); //cuts the string (idk how this works tbh kek)
+                theHT.insert(sub, option); //calls insert method from LLHashTable class
+            }
+            System.out.println("----------------------------------");
+            //prints the contents of the actual hash table and the number of collisions
+            theHT.printTable();
+            System.out.println("Using hash " + option);
+            System.out.println("Input length: " + length + " and k: " + k);
+            //calculating and printing the running time
+            endTime = System.nanoTime();
+            totalTime = endTime - startTime;
+            System.out.println("Running time: " + totalTime + " nanoseconds");
+            float milliTime = totalTime / 1_000_000.0f; //convert to milliseconds
+            System.out.println("Running time: " + milliTime + " milliseconds");
+        }
     }
-
-    public void printTree(binaryTreeNode currentNode, StringBuilder line, String tabs, String arrow) {
-        if (currentNode == null) return;
-        line.append("\n").append(tabs).append(arrow).append(currentNode.value).append(" ").append(currentNode.cnt);
-
-        StringBuilder tabBuilder = new StringBuilder(tabs);
-        if (currentNode.parent.rightChild != null && currentNode.parent.rightChild != currentNode)
-            tabBuilder.append("║   ");
-        else
-            tabBuilder.append("\t");
-
-        String leftChildArrow;
-        String rightChildArrow = "╚═══";
-        if (currentNode.rightChild != null && rootNode.leftChild != null)
-            leftChildArrow = "╠═══";
-        else
-            leftChildArrow = "╚═══";
-
-        printTree(currentNode.leftChild, line, tabBuilder.toString(), leftChildArrow);
-        printTree(currentNode.rightChild, line, tabBuilder.toString(), rightChildArrow);
-
-    }
-
-    public BinaryTree(binaryTreeNode root) {
-        rootNode = root;
-        root.depth = 0;
-    }
-}
-
-class binaryTreeNode {
-    String value;
-    int depth;
-    int cnt=1;
-    binaryTreeNode parent;
-    binaryTreeNode leftChild;
-    binaryTreeNode rightChild;
-
-    public int getCnt() {
-        return cnt;
-    }
-
-    public void setCnt(int cnt) {
-        this.cnt = cnt;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public binaryTreeNode getParent() {
-        return parent;
-    }
-
-    public void setParent(binaryTreeNode parent) {
-        this.parent = parent;
-    }
-
-    public binaryTreeNode getLeftChild() {
-        return leftChild;
-    }
-
-    public void setLeftChild(binaryTreeNode leftChild) {
-        this.leftChild = leftChild;
-    }
-
-    public binaryTreeNode getRightChild() {
-        return rightChild;
-    }
-
-    public void setRightChild(binaryTreeNode rightChild) {
-        this.rightChild = rightChild;
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-
-    public binaryTreeNode(String value) {
-        this.value = value;
-    }
-
 }
